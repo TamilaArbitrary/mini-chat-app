@@ -1,38 +1,21 @@
 format_version: '11'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: flutter
-
 trigger_map:
 - push_branch: main
   workflow: android_release
 - pull_request_source_branch: "*"
   workflow: android_release
-
 workflows:
   android_release:
     summary: Build and Deploy APK for Mini Chat App
     steps:
     - git-clone@8:
         title: Clone repository
-    
     - flutter-installer@0:
         title: Install Flutter SDK
         inputs:
         - version: stable
-
-    - script@1:
-        title: Flutter Pub Get & Test
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -ex
-            echo "Fetching dependencies..."
-            flutter pub get
-            
-            # Uncomment if you have tests
-            # echo "Running tests..."
-            # flutter test
-
     - script@1:
         title: Flutter Build APK (Release)
         inputs:
@@ -43,7 +26,7 @@ workflows:
             echo "Building Android APK in Release mode..."
             flutter build apk --release
 
-            # Path to the generated APK
+            # Шлях до згенерованого APK
             APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 
             if [ ! -f "$APK_PATH" ]; then
@@ -52,9 +35,8 @@ workflows:
             fi
 
             echo "APK successfully built at: $APK_PATH"
-            # Export path for subsequent steps
+            # Експорт шляху для наступних кроків
             envman add --key APK_PATH --value "$APK_PATH"
-
     - script@1:
         title: Upload to Firebase App Distribution
         inputs:
@@ -78,13 +60,11 @@ workflows:
               --release-notes "New build for Mini Chat App - $(date +'%Y-%m-%d %H:%M')"
 
             echo "Upload complete!"
-
     - deploy-to-bitrise-io@2:
         title: Deploy to Bitrise.io
         inputs:
         - is_compress: 'false'
         - deploy_path: "$APK_PATH"
-
 app:
   envs:
   - BITRISE_FLUTTER_PROJECT_LOCATION: "."
