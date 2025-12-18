@@ -23,20 +23,25 @@ workflows:
             #!/usr/bin/env bash
             set -ex
 
+            # Переходимо в папку проекту, яку ми вказали в envs
+            cd "$BITRISE_FLUTTER_PROJECT_LOCATION"
+
             echo "Building Android APK in Release mode..."
             flutter build apk --release
 
-            # Шлях до згенерованого APK
-            APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+            # Шукаємо APK у папці build всередині main_chat_app
+            APK_PATH_LOCAL=$(find build/app/outputs/flutter-apk -name "app-release.apk" | head -n 1)
 
-            if [ ! -f "$APK_PATH" ]; then
+            if [ -z "$APK_PATH_LOCAL" ]; then
               echo "ERROR: APK not found!"
               exit 1
             fi
 
-            echo "APK successfully built at: $APK_PATH"
-            # Експорт шляху для наступних кроків
-            envman add --key APK_PATH --value "$APK_PATH"
+            # Експортуємо повний шлях для Firebase та Bitrise Deploy
+            ABS_APK_PATH="$(pwd)/$APK_PATH_LOCAL"
+            echo "APK successfully built at: $ABS_APK_PATH"
+            
+            envman add --key APK_PATH --value "$ABS_APK_PATH"
     - script@1:
         title: Upload to Firebase App Distribution
         inputs:
@@ -45,7 +50,7 @@ workflows:
             set -ex
 
             if [ -z "$FIREBASE_TOKEN" ] || [ -z "$FIREBASE_APP_ID_ANDROID" ]; then
-              echo "ERROR: FIREBASE_TOKEN or FIREBASE_APP_ID_ANDROID is not set in Bitrise Secrets!"
+              echo "ERROR: FIREBASE_TOKEN or FIREBASE_APP_ID_ANDROID is not set!"
               exit 1
             fi
 
@@ -58,8 +63,6 @@ workflows:
               --token "$FIREBASE_TOKEN" \
               --groups "testers" \
               --release-notes "New build for Mini Chat App - $(date +'%Y-%m-%d %H:%M')"
-
-            echo "Upload complete!"
     - deploy-to-bitrise-io@2:
         title: Deploy to Bitrise.io
         inputs:
@@ -67,5 +70,6 @@ workflows:
         - deploy_path: "$APK_PATH"
 app:
   envs:
-  - BITRISE_FLUTTER_PROJECT_LOCATION: "."
+  # Тепер вказано правильний шлях до папки з Flutter проектом
+  - BITRISE_FLUTTER_PROJECT_LOCATION: "main_chat_app"
   - FLUTTER_VERSION: stable
