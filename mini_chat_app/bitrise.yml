@@ -23,23 +23,32 @@ workflows:
             #!/usr/bin/env bash
             set -ex
 
-            # Переходимо в папку проекту, яку ми вказали в envs
-            cd "$BITRISE_FLUTTER_PROJECT_LOCATION"
+            echo "Пошук проекту Flutter..."
+            # Знаходимо папку, де лежить pubspec.yaml
+            PROJECT_DIR=$(find . -name "pubspec.yaml" -exec dirname {} \; | head -n 1)
 
-            echo "Building Android APK in Release mode..."
-            flutter build apk --release
-
-            # Шукаємо APK у папці build всередині main_chat_app
-            APK_PATH_LOCAL=$(find build/app/outputs/flutter-apk -name "app-release.apk" | head -n 1)
-
-            if [ -z "$APK_PATH_LOCAL" ]; then
-              echo "ERROR: APK not found!"
+            if [ -z "$PROJECT_DIR" ]; then
+              echo "ПОМИЛКА: Не знайдено файл pubspec.yaml у репозиторії!"
+              ls -R # Виводимо список файлів для діагностики, якщо не знайшли
               exit 1
             fi
 
-            # Експортуємо повний шлях для Firebase та Bitrise Deploy
+            echo "Проект знайдено в: $PROJECT_DIR"
+            cd "$PROJECT_DIR"
+
+            echo "Запуск збірки APK..."
+            flutter build apk --release
+
+            # Знаходимо згенерований файл
+            APK_PATH_LOCAL=$(find build/app/outputs/flutter-apk -name "app-release.apk" | head -n 1)
+
+            if [ -z "$APK_PATH_LOCAL" ]; then
+              echo "ПОМИЛКА: APK не знайдено після збірки!"
+              exit 1
+            fi
+
             ABS_APK_PATH="$(pwd)/$APK_PATH_LOCAL"
-            echo "APK successfully built at: $ABS_APK_PATH"
+            echo "APK успішно створено: $ABS_APK_PATH"
             
             envman add --key APK_PATH --value "$ABS_APK_PATH"
     - script@1:
@@ -50,19 +59,19 @@ workflows:
             set -ex
 
             if [ -z "$FIREBASE_TOKEN" ] || [ -z "$FIREBASE_APP_ID_ANDROID" ]; then
-              echo "ERROR: FIREBASE_TOKEN or FIREBASE_APP_ID_ANDROID is not set!"
+              echo "ERROR: FIREBASE_TOKEN або FIREBASE_APP_ID_ANDROID не встановлені в Secrets!"
               exit 1
             fi
 
-            echo "Installing Firebase CLI..."
+            echo "Встановлення Firebase CLI..."
             npm install -g firebase-tools
 
-            echo "Uploading APK to Firebase..."
+            echo "Завантаження у Firebase..."
             firebase appdistribution:distribute "$APK_PATH" \
               --app "$FIREBASE_APP_ID_ANDROID" \
               --token "$FIREBASE_TOKEN" \
               --groups "testers" \
-              --release-notes "New build for Mini Chat App - $(date +'%Y-%m-%d %H:%M')"
+              --release-notes "Build from Bitrise - $(date +'%Y-%m-%d %H:%M')"
     - deploy-to-bitrise-io@2:
         title: Deploy to Bitrise.io
         inputs:
@@ -70,6 +79,4 @@ workflows:
         - deploy_path: "$APK_PATH"
 app:
   envs:
-  # Тепер вказано правильний шлях до папки з Flutter проектом
-  - BITRISE_FLUTTER_PROJECT_LOCATION: "main_chat_app"
   - FLUTTER_VERSION: stable
