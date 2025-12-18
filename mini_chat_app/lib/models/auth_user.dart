@@ -1,0 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
+class AuthUser {
+  final String uid;
+  final String email;
+  final String? displayName;
+
+  AuthUser.fromFirebaseUser(User user)
+      : uid = user.uid,
+        email = user.email ?? '',
+        displayName = user.displayName;
+}

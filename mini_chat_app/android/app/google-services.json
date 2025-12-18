@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "24219077731",
+    "project_id": "mini-chat-app-bd3a5",
+    "storage_bucket": "mini-chat-app-bd3a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24219077731:android:3f24b74835a5b4c76c7c56",
+        "android_client_info": {
+          "package_name": "com.example.mini_chat_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24219077731-mrl4g8c1965itd5reeon9vma0rlsal18.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mini_chat_app",
+            "certificate_hash": "6bf0e856a4cea08c18e9181cc53fc552a8bdf257"
+          }
+        },
+        {
+          "client_id": "24219077731-uv5q08e9aor5lnl9e4dei2shu3b3fr8v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxyK5yFDB4-HfaTb_IOZXrnRNz5X3wLXw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "24219077731-uv5q08e9aor5lnl9e4dei2shu3b3fr8v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "24219077731-6g2g70icl231oaroc83idlk0papds45h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.miniChatApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
